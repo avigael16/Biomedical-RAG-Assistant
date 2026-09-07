@@ -1,207 +1,145 @@
 # 🧬 Biomedical RAG AI Assistant
 
-A local Retrieval-Augmented Generation (RAG) application designed to answer questions from biomedical documents using semantic search and a locally hosted Large Language Model.
 
-The project combines document processing, vector search, local LLM inference and an interactive Streamlit interface.
+A biomedical question-answering application built with Python, FAISS and a local LLM.
 
-## 🎯 Project Goal
+The goal of this project is to explore how Retrieval-Augmented Generation (RAG) can be used to interact with biomedical documents. Users can upload PDF files and ask questions about their content through a Streamlit chat interface.
 
-Biomedical literature can contain large amounts of complex information distributed across multiple documents.
+I built this project as part of my work on AI and bioinformatics, with a focus on understanding the different components of a RAG pipeline rather than relying entirely on high-level frameworks.
 
-The goal of this project is to build an AI assistant capable of:
+## Features
 
-- processing biomedical PDF documents;
-- retrieving relevant information using semantic search;
-- answering questions based on retrieved evidence;
-- providing document sources for generated answers;
-- running an LLM locally;
-- eventually integrating medical image analysis.
+- Upload biomedical PDF documents
+- Extract and split text into smaller chunks
+- Generate embeddings with Sentence Transformers
+- Store and search embeddings using FAISS
+- Retrieve relevant passages for a user question
+- Generate answers using a local LLM through Ollama
+- Display the conversation in a Streamlit chat interface
+- Keep conversation history during the session
+- Show the retrieved sources used to generate an answer
 
-## 🏗️ Architecture
+Medical image support is currently being added.
+
+## How it works
+
+The application follows a standard RAG pipeline:
 
 ```text
-PDF Documents
-      │
-      ▼
-PDF Loader
-      │
-      ▼
-Text Chunking
-      │
-      ▼
-Embeddings
-      │
-      ▼
-FAISS Vector Database
-      │
-      │
-User Question
-      │
-      ▼
-Question Embedding
-      │
-      ▼
-Semantic Retrieval
-      │
-      ▼
-Top Relevant Chunks
-      │
-      ▼
-Context Builder
-      │
-      ▼
-Local LLM (Llama / Ollama)
-      │
-      ▼
-Answer + Sources
+Biomedical documents
+        |
+        v
+   Text extraction
+        |
+        v
+     Chunking
+        |
+        v
+    Embeddings
+        |
+        v
+   FAISS index
+        |
+        v
+User question
+        |
+        v
+Similarity search
+        |
+        v
+Relevant chunks
+        |
+        v
+   Local LLM
+        |
+        v
+Answer + sources
 ```
 
-## ✨ Current Features
+Instead of asking the language model to answer only from its internal knowledge, the application first searches the uploaded documents for relevant information. These passages are then provided to the model as context.
 
-### Document processing
-
-- PDF loading with LangChain / PyPDFLoader
-- Automatic document chunking
-- Metadata preservation
-- Page and source tracking
-
-### Semantic search
-
-- Sentence Transformer embeddings
-- FAISS vector indexing
-- Persistent FAISS storage
-- Top-K semantic retrieval
-
-### Retrieval-Augmented Generation
-
-- Context construction from retrieved passages
-- Biomedical-oriented prompting
-- Answers grounded in retrieved documents
-- Source/page attribution
-- Fallback when the answer cannot be found in the provided context
-
-### Local AI
-
-The language model runs locally through Ollama, allowing the RAG pipeline to operate without sending the document context to a hosted LLM API.
-
-### User Interface
-
-An interactive Streamlit interface allows users to ask questions through a web interface instead of using the command line.
-
-### Document Upload
-
-PDF upload support is being integrated so users can build a knowledge base from their own documents without manually modifying local project folders.
-
-## 🧠 RAG Workflow
-
-### 1. Indexing
-
-Documents are loaded and split into smaller chunks.
-
-Each chunk is transformed into a numerical embedding and stored inside a FAISS vector index.
-
-### 2. Retrieval
-
-When a user asks a question, the question is converted into an embedding using the same embedding model.
-
-FAISS searches for the most semantically similar document chunks.
-
-### 3. Generation
-
-The most relevant chunks are assembled into a context and sent together with the user's question to the local LLM.
-
-The model is instructed to answer using the retrieved evidence rather than relying only on its internal knowledge.
-
-## 📁 Project Structure
+## Project structure
 
 ```text
 Biomedical_RAG_Assistant/
 │
-├── streamlit_app.py
-├── build_database.py
-├── config.py
-│
 ├── src/
-│   ├── pdf_loader.py
-│   ├── image_loader.py
-│   ├── text_splitter.py
+│   ├── conversation.py
 │   ├── embedding.py
-│   ├── vector_store.py
-│   ├── storage.py
-│   ├── retriever.py
-│   ├── prompts.py
+│   ├── image_analyzer.py
+│   ├── image_loader.py
+│   ├── knowledge_base.py
 │   ├── llm.py
+│   ├── pdf_loader.py
+│   ├── prompts.py
 │   ├── rag_pipeline.py
-│   └── upload_manager.py
+│   ├── retriever.py
+│   ├── storage.py
+│   ├── text_splitter.py
+│   ├── upload_manager.py
+│   ├── utils.py
+│   └── vector_store.py
 │
-├── uploads/
-│   ├── pdfs/
-│   └── images/
-│
-└── storage/
+├── build_database.py
+├── streamlit_app.py
+├── config.py
+├── requirements.txt
+└── README.md
 ```
 
-## 🛠️ Technologies
+## Technologies
 
 - Python
 - Streamlit
-- LangChain
-- Sentence Transformers
-- Hugging Face
 - FAISS
+- Sentence Transformers
 - Ollama
 - Llama
+- NumPy
 
-## 🚀 Running the Application
+## Running the project
 
-Create and activate a virtual environment:
+Clone the repository:
+
+```bash
+git clone https://github.com/avigael16/Biomedical-RAG-Assistant.git
+cd Biomedical-RAG-Assistant
+```
+
+Create a virtual environment:
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-Install the project dependencies:
+Install the dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Make sure Ollama is installed and the configured Llama model is available.
+Make sure Ollama is installed and the required model is available locally.
 
-Build the document index when required:
-
-```bash
-python build_database.py
-```
-
-Run the Streamlit application:
+Then start the application:
 
 ```bash
 streamlit run streamlit_app.py
 ```
 
-## 🗺️ Roadmap
+## Current work
 
-Planned improvements include:
+I am currently extending the project to support medical images in addition to text documents.
 
-- dynamic PDF upload and indexing;
-- multi-document knowledge bases;
-- conversational memory;
-- medical image analysis;
-- multimodal RAG;
-- retrieval confidence/relevance scoring;
-- document comparison;
-- automatic document summarization;
-- improved citation handling;
-- RAG evaluation;
-- automated tests;
-- Docker deployment;
-- persistent database/storage;
-- production-ready API.
+The next steps are:
 
-## ⚠️ Disclaimer
+- medical image upload and preprocessing
+- support for common medical imaging formats
+- integration of image analysis into the chat
+- improved retrieval and source attribution
+- better handling of newly uploaded documents
+- evaluation of retrieval quality
 
-This project is intended for educational, research and software engineering purposes.
+## Disclaimer
 
-It is not a medical device and should not be used for diagnosis, treatment decisions, or other clinical decision-making without appropriate validation and regulatory review.
+This project is intended for educational and research purposes. It is not a medical diagnostic tool and should not be used to make clinical decisions.
