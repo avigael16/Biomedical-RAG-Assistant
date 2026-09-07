@@ -6,7 +6,8 @@ from src.rag_pipeline import ask_rag
 
 from config import FAISS_PATH, CHUNKS_PATH
 
-from src.upload_manager import saved_uploaded_pdf,load_single_pdf
+from src.upload_manager import save_uploaded_pdf
+from src.pdf_loader import load_single_pdf
 
 st.title("🧬Biomedical RAG Assistant ")
 
@@ -19,7 +20,7 @@ uploaded_pdf= st.file_uploader(
 
 if uploaded_pdf:
 
-    pdf_path = saved_uploaded_pdf(uploaded_pdf)
+    pdf_path = save_uploaded_pdf(uploaded_pdf)
 
     st.success(
         f"PDF saved successfully:{pdf_path}"
@@ -31,38 +32,76 @@ if uploaded_pdf:
 
     )
 
+if "messages" not in st.session_state:
+        st.session_state.messages= []
+
+for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+   
+
 # Load database
 
-index=FAISS_PATH
+index=load_vector_store(FAISS_PATH)
 
-chunks = CHUNKS_PATH
+chunks = load_chunks(CHUNKS_PATH)
+
+# ---------------------------------------------------
+# CHAT
+# ---------------------------------------------------
 
 st.write( 
     "Ask question about your biomedical documents."
 )
 
-question = st.text_input(
-     "Enter your medical question"
+question = st.chat_input(
+     "Enter your biomedical question"
 )
 
 
 if question :
 
+#save user question to session state
+
+    st.session_state.messages.append(
+        {"role":"user",
+         "content":question
+         }
+    )
+
+    # Display user question in chat message container
+    with st.chat_message("user"):
+        st.markdown(question)
+
+    #Previous conversation
+    history = st.session_state.messages[:-1]
+
+
+    #Generate answer using RAG pipeline
     with st.spinner("Searching documents and generating answer..."):
         answer ,sources = ask_rag(
             question,
             index,
-            chunks
+            chunks,
+            history=history
         )
         
-    st.subheader("Answer")
+    
+    #Save  assistant answer 
+    st.session_state.messages.append(
+        {"role":"assistant",
+         "content":answer
+         }
+    )
 
-    st.write(answer)
 
+    # Display assistant answer
+    with st.chat_message("assistant"):
+         st.markdown(answer)
+
+
+    # Display sources     
     st.subheader("Sources")
-
-    st.subheader("Sources")
-
     for i, doc in enumerate(sources):
 
         st.write(
@@ -70,3 +109,4 @@ if question :
             doc.metadata
         )
 
+    
